@@ -122,15 +122,13 @@ Date,Close
 ```
 ---
 ## 📌 Status
- ✅ MVP Goals
- ```
-	•	User auth & profile setup
-	•	Strategy CRUD
-	•	Backtest engine with CSV support
-	•	Chart visualizations
-	•	Yahoo Finance integration (toggle on/off)
-	•	UI polish & responsive layout
-```
+### ✅ MVP Goals
+- User auth & profile setup
+- Strategy CRUD
+- Backtest engine with CSV support
+- Chart visualizations
+- Yahoo Finance integration (toggle on/off
+- UI polish & responsive layout
 ---
 ## 👤 Author
 Developed by J. Paul — feel free to reach out or contribute!
