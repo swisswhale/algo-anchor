@@ -1,0 +1,26 @@
+# Django web framework
+Django>=4.2
+
+#PostgreSQL database driver
+psycopg2-binary
+
+# User auth (Django built-in used for now, AllAuth for future)
+# django-allauth
+
+# Data handling
+pandas
+numpy
+
+# Charting
+matplotlib
+chartly
+
+# Financial data from Yahoo
+yfinance
+
+# Environment variable management (for settings.py secrets)
+python-decouple
+
+# Dev Tools
+django-debug-toolbar
+black
