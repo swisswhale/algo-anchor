@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/strategy.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card border-danger shadow-sm">
+    <div class="card-body text-center">
+      <h3 class="text-danger mb-3">⚠️ Confirm Delete</h3>
+      <p>Are you sure you want to permanently delete the strategy "<strong>{{ strategy.name }}</strong>"?</p>
+
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger me-2">Yes, Delete</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

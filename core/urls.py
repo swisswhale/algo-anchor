@@ -1,6 +1,5 @@
-# core/urls.py
-
 from django.urls import path
+from core.views import strategy_views
 from .views import (
     dashboard_views,
     auth_views,
@@ -22,10 +21,13 @@ urlpatterns = [
 
     # Strategies
     path('strategies/', strategy_views.strategy_list, name='strategy_list'),
-    path('strategies/new/', strategy_views.strategy_create, name='strategy_create'),
+    path('strategies/new/', strategy_views.strategy_create, name='strategy_create'), path('strategies/<int:pk>/', strategy_views.strategy_detail, name='strategy_detail'),
     path('strategies/<int:pk>/', strategy_views.strategy_detail, name='strategy_detail'),
+    path('strategies/<int:pk>/edit/', strategy_views.strategy_edit, name='strategy_edit'),
+    path('strategies/<int:pk>/rename/', strategy_views.strategy_rename, name='strategy_rename'),
     path('strategies/<int:pk>/delete/', strategy_views.strategy_delete, name='strategy_delete'),
 
     # Profile
+    path('profile/', profile_views.profile_view, name='profile'),
     path('profile/edit/', profile_views.edit_profile, name='edit_profile'),
 ]

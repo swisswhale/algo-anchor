@@ -13,3 +13,8 @@ a.btn-sm {
 h2 {
     color: #2f363d;
 }
+
+.editable-name:hover {
+  background-color: #f8f9fa;
+  cursor: text;
+}

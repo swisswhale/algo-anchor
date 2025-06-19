@@ -32,12 +32,12 @@ class Strategy(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     lookback_days = models.IntegerField()
-    entry_threshold = models.FloatField(help_text="Z-score threshold for entry")
-    exit_rule = models.CharField(max_length=100)  # e.g. "mean", "halfway"
+    entry_threshold = models.FloatField()
+    exit_rule = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} ({self.user.username})"
+        return self.name
 
 class BacktestResult(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

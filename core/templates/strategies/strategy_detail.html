@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/strategy.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-3">{{ strategy.name }}</h2>
+  <ul class="list-group mb-4">
+    <li class="list-group-item"><strong>Lookback Days:</strong> {{ strategy.lookback_days }}</li>
+    <li class="list-group-item"><strong>Entry Threshold:</strong> {{ strategy.entry_threshold }}</li>
+    <li class="list-group-item"><strong>Exit Rule:</strong> {{ strategy.exit_rule }}</li>
+    <li class="list-group-item"><strong>Created:</strong> {{ strategy.created_at|date:"M d, Y" }}</li>
+  </ul>
+
+  <a href="{% url 'strategy_edit' strategy.pk %}" class="btn btn-sm btn-outline-secondary me-2"> &#9998; Edit</a>
+  <a href="{% url 'strategy_delete' strategy.pk %}" class="btn btn-sm btn-danger"> &#9888; Delete</a>
+<a href="{% url 'dashboard' %}" class="btn btn-sm btn-warning d-inline-flex align-items-center">
+    &#x21A9;&nbsp; Return to Dashboard
+  </a>
+</div>
+{% endblock %}

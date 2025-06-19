@@ -1,9 +1,11 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from core.models import Strategy
 
 def home(request):
-    """Home page view"""
     return render(request, 'home.html')
 
+@login_required
 def dashboard(request):
-    """Dashboard view"""
-    return render(request, 'dashboard/dashboard.html')
+    strategies = Strategy.objects.filter(user=request.user)
+    return render(request, 'dashboard.html', {'strategies': strategies})
