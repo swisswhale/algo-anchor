@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Delete Strategy</h1>
+<form method="post">
+    {% csrf_token %}
+    <p>Are you sure you want to delete this strategy?</p>
+    <button type="submit">Yes, Delete</button>
+    <a href="{% url 'strategy_detail' pk=strategy.pk %}">Cancel</a>
+</form>
+{% endblock %}

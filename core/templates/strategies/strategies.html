@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="strategies-list">
+    <h1>Trading Strategies</h1>
+    <a href="{% url 'strategy_create' %}" class="btn btn-primary">Create New Strategy</a>
+    
+    {% if strategies %}
+        <div class="strategies-grid">
+            {% for strategy in strategies %}
+                <div class="strategy-card">
+                    <h3>{{ strategy.name }}</h3>
+                    <p>{{ strategy.description }}</p>
+                    <div class="strategy-actions">
+                        <a href="{% url 'strategy_detail' strategy.id %}">View Details</a>
+                        <a href="{% url 'strategy_edit' strategy.id %}">Edit</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No strategies found. Create your first strategy!</p>
+    {% endif %}
+</div>
+{% endblock %}

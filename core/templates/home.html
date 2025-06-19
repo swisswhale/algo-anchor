@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="hero-image d-flex flex-column justify-content-center align-items-center text-white text-center">
+    <div class="bg-dark bg-opacity-75 p-4 rounded shadow">
+        <h1 class="display-4 fw-bold">Welcome to AlgoAnchor</h1>
+        <p class="lead mb-4">
+            Run and visualize your own mean reversion strategies — all from a clean, GitHub-inspired interface.  
+            No APIs. No bloat. Just your logic, your data, your edge.
+        </p>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg">Go to Dashboard</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg me-2">Log In</a>
+            <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Register</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

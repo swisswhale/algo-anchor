@@ -1,0 +1,17 @@
+form p {
+  margin-bottom: 1rem;
+}
+
+form p label {
+  font-weight: 500;
+  display: block;
+}
+
+form p input {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  margin-top: 0.25rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}

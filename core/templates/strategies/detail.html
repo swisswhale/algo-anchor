@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="strategy-detail">
+    <h1>{{ strategy.name }}</h1>
+    
+    <div class="strategy-info">
+        <h3>Description</h3>
+        <p>{{ strategy.description }}</p>
+        
+        <h3>Parameters</h3>
+        <pre>{{ strategy.parameters }}</pre>
+        
+        <h3>Performance</h3>
+        {% if strategy.performance_metrics %}
+            <!-- Add performance metrics display -->
+        {% else %}
+            <p>No performance data available</p>
+        {% endif %}
+    </div>
+    
+    <div class="strategy-actions">
+        <a href="{% url 'strategy_edit' strategy.id %}" class="btn btn-primary">Edit Strategy</a>
+        <a href="{% url 'strategy_list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+{% endblock %}
