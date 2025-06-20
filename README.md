@@ -1,134 +1,263 @@
 # 📈 AlgoAnchor
-### Mean Reversion App
+### Trading Strategy Backtesting Platform
 ![Built With](https://img.shields.io/badge/built%20with-Django-blue)
-![Status](https://img.shields.io/badge/status-in--development-yellow)
-![Python Version](https://img.shields.io/badge/python-3.10+-green)
+![Status](https://img.shields.io/badge/status-production--ready-green)
+![Python Version](https://img.shields.io/badge/python-3.13+-green)
+![Deployment](https://img.shields.io/badge/deploy-Replit-orange)
 
-A Django-based web app for backtesting mean reversion trading strategies using historical price data. Users can create strategies, view backtest results, and analyze trades — with full CRUD functionality and optional live data via Yahoo Finance.
+A comprehensive Django-based web application for creating, backtesting, and analyzing trading strategies. Features a complete dashboard for strategy management, detailed performance analytics, and automated backtesting with real-world financial data integration.
 
 ---
 
 ## 🚀 Features
 
-- 🔐 Full user authentication (register, login, logout, profile management)
-- 🧠 Strategy builder (lookback period, z-score threshold, exit rules)
-- 🗂️ Preloaded CSV or live Yahoo Finance integration (`yfinance`)
-- 📉 Mean reversion logic with signal generation
-- 📊 Trade logs, backtest summaries, and performance metrics
-- 📈 Optional visualizations with Plotly and Matplotlib
-- 🔧 Built with modular Django architecture for easy extensibility
+- 🔐 **Complete User Management**: Registration, authentication, profile management
+- 📊 **Interactive Dashboard**: Strategy overview with performance metrics and management tools
+- 🎯 **Strategy Builder**: Create custom strategies with configurable parameters:
+  - Lookback periods (20-200 days)
+  - Entry thresholds (Z-score based)
+  - Exit rules (profit target, stop loss, time-based)
+  - Multi-ticker support
+- 📈 **Advanced Backtesting Engine**: 
+  - Comprehensive performance metrics (Sharpe ratio, max drawdown, win rate)
+  - Risk analytics (VaR, Alpha, Beta, volatility)
+  - Trade-by-trade analysis
+- 📋 **Detailed Results**: Performance charts, trade logs, and comparative analysis
+- 🔄 **Real-time Data**: Yahoo Finance integration for live market data
+- � **Responsive Design**: Bootstrap-powered UI with mobile support
+- 🚀 **Cloud Ready**: Configured for Replit deployment
 
 ---
 
 ## 🛠 Tech Stack
 
-| Layer         | Tools Used                           |
+| Layer         | Technologies                          |
 |---------------|---------------------------------------|
-| **Backend**   | Django, PostgreSQL                    |
-| **Frontend**  | Django Templates, Bootstrap (basic)   |
-| **Data Tools**| Pandas, NumPy, yfinance               |
-| **Visualization** | Matplotlib, Plotly               |
-| **Auth**      | Django built-in auth (with AllAuth optional) |
-| **Config**    | python-decouple for env vars          |
+| **Backend**   | Django 5.2, Python 3.13, SQLite     |
+| **Frontend**  | Django Templates, Bootstrap 5, Font Awesome |
+| **Data**      | Pandas, NumPy, yfinance              |
+| **Analytics** | Custom backtesting engine            |
+| **Auth**      | Django built-in authentication       |
+| **Deployment**| Replit, with local development support |
 
 ---
 
 ## 📂 Project Structure
 ```
-meanreversion_app/
-├── core/                          # Main Django app
-│   ├── admin.py
-│   ├── apps.py
-│   ├── forms.py
-│   ├── models.py                  # All DB models (UserProfile, Strategy, etc.)
-│   ├── signals.py                 # Auto-create UserProfile
-│   ├── tests.py
-│   ├── urls.py                    # App-specific URL routes
-│   ├── views/
-│   │   ├── init.py
-│   │   ├── auth_views.py
-│   │   ├── dashboard_views.py
-│   │   ├── strategy_views.py
-│   │   └── profile_views.py
-│   ├── services/
-│   │   ├── init.py
-│   │   ├── data_loader.py         # Load from CSV
-│   │   └── yahoo_fetcher.py       # Pull from Yahoo Finance
-│   ├── templates/
-│   │   ├── base.html
-│   │   ├── home.html
-│   │   ├── dashboard.html
-│   │   ├── profile/
-│   │   │   └── edit_profile.html
-│   │   ├── registration/
-│   │   │   ├── login.html
-│   │   │   ├── logout.html
-│   │   │   └── register.html
-│   │   └── strategy/
-│   │       ├── strategy_list.html
-│   │       ├── strategy_create.html
-│   │       └── strategy_detail.html
-│   └── static/
-│       ├── css/
-│       └── js/
-├── dataset/                       # Local test datasets
-│   └── spy.csv
-├── scripts/                       # Utility scripts
-│   └── load_data.py
-├── meanreversion_app/             # Project settings
-│   ├── init.py
-│   ├── asgi.py
-│   ├── settings.py
-│   ├── urls.py                    # Global URL routing
-│   └── wsgi.py
-├── db.sqlite3                     # Local dev DB (or connect PostgreSQL)
-├── requirements.txt
-├── README.md
-└── manage.py
+algo-anchor/
+├── core/                          # Main Django application
+│   ├── models.py                  # Database models (Strategy, BacktestResult, Security, etc.)
+│   ├── forms.py                   # Django forms for strategy creation/editing
+│   ├── admin.py                   # Django admin configuration
+│   ├── urls.py                    # App URL routing
+│   ├── views/                     # Organized view modules
+│   │   ├── dashboard_views.py     # Dashboard and home views
+│   │   ├── strategy_views.py      # Strategy CRUD operations
+│   │   ├── backtest_views.py      # Backtest results and analysis
+│   │   ├── auth_views.py          # User authentication
+│   │   └── profile_views.py       # User profile management
+│   ├── services/                  # Business logic services
+│   │   ├── backtest_engine.py     # Core backtesting algorithms
+│   │   ├── data_loader.py         # Data processing utilities
+│   │   └── yahoo_fetcher.py       # Yahoo Finance API integration
+│   ├── management/commands/       # Django management commands
+│   │   └── run_backtests.py       # Batch backtest execution
+│   ├── templatetags/              # Custom template filters
+│   │   └── math_filters.py        # Mathematical operations for templates
+│   ├── templates/                 # HTML templates
+│   │   ├── base.html              # Base template with Bootstrap
+│   │   ├── dashboard.html         # Main dashboard
+│   │   ├── home.html              # Landing page
+│   │   ├── strategies/            # Strategy-related templates
+│   │   │   ├── create.html        # Strategy creation form
+│   │   │   ├── detail.html        # Strategy details view
+│   │   │   ├── edit.html          # Strategy editing form
+│   │   │   └── delete.html        # Delete confirmation
+│   │   ├── backtests/             # Backtest result templates
+│   │   │   └── detail.html        # Detailed backtest results
+│   │   ├── registration/          # Authentication templates
+│   │   │   ├── login.html         # Login form
+│   │   │   ├── logout.html        # Logout confirmation
+│   │   │   └── register.html      # User registration
+│   │   └── profile/               # User profile templates
+│   │       └── edit.html          # Profile editing
+│   └── static/                    # Static assets
+│       ├── css/                   # Custom stylesheets
+│       ├── js/                    # JavaScript files
+│       └── images/                # Image assets
+├── algoanchor_app/                # Django project settings
+│   ├── settings.py                # Main configuration
+│   ├── urls.py                    # Root URL configuration
+│   ├── wsgi.py                    # WSGI configuration
+│   └── asgi.py                    # ASGI configuration
+├── dataset/                       # Sample data files
+│   └── spy.csv                    # Sample market data
+├── depcode/                       # Development/deprecated files
+├── db.sqlite3                     # SQLite database
+├── main.py                        # Replit deployment entry point
+├── requirements.txt               # Python dependencies
+├── replit.nix                     # Replit configuration
+├── .replit                        # Replit deployment settings
+├── .gitignore                     # Git ignore rules
+└── manage.py                      # Django management script
 ```
 ---
 
 ## 📦 Installation & Setup
 
+### Local Development
+
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR-USERNAME/meanreversion-app.git
-cd meanreversion-app
+git clone https://github.com/YOUR-USERNAME/algo-anchor.git
+cd algo-anchor
 
 # Create virtual environment
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Set up PostgreSQL (or use sqlite3 for testing)
-# Edit .env or settings.py as needed
-
-# Apply migrations
+# Apply database migrations
 python manage.py migrate
+
+# Load sample securities data
+python manage.py shell -c "
+from core.models import Security
+# Add sample securities if needed
+Security.objects.get_or_create(symbol='AAPL', defaults={'name': 'Apple Inc.'})
+Security.objects.get_or_create(symbol='GOOGL', defaults={'name': 'Alphabet Inc.'})
+Security.objects.get_or_create(symbol='MSFT', defaults={'name': 'Microsoft Corp.'})
+"
 
 # Create superuser (optional)
 python manage.py createsuperuser
 
-# Run the server
+# Run the development server
 python manage.py runserver
+```
 
-# dataset/spy.csv
-Date,Close
-2023-01-01,392.45
-2023-01-02,395.30
-...
+### Replit Deployment
+
+1. Fork this repository to your GitHub account
+2. Import the repository into Replit
+3. Replit will automatically:
+   - Install dependencies from `requirements.txt`
+   - Run database migrations
+   - Start the Django server on `0.0.0.0:8000`
+
+The application includes configuration for Replit deployment with proper `ALLOWED_HOSTS` settings.
+
+### Running Backtests
+
+```bash
+# Run backtests for all strategies
+python manage.py run_backtests
+
+# Run backtest for specific strategy
+python manage.py run_backtests --strategy-id 1
+
+# Force re-run existing backtests
+python manage.py run_backtests --force
 ```
 ---
-## 📌 Status
-### ✅ MVP Goals
-- User auth & profile setup
-- Strategy CRUD
-- Backtest engine with CSV support
-- Chart visualizations
-- Yahoo Finance integration (toggle on/off
-- UI polish & responsive layout
+
+## 🎯 Usage
+
+### Creating a Strategy
+1. Register/login to your account
+2. Navigate to the dashboard
+3. Click "New Strategy"
+4. Configure strategy parameters:
+   - **Name**: Descriptive strategy name
+   - **Lookback Days**: Historical period for analysis (20-200 days)
+   - **Entry Threshold**: Z-score threshold for trade signals
+   - **Exit Rule**: Profit target, stop loss, or time-based exits
+   - **Tickers**: Select securities to trade
+
+### Analyzing Results
+- **Dashboard Overview**: Quick performance summary of all strategies
+- **Detailed Results**: Click "Results" to view comprehensive backtest analysis
+- **Performance Metrics**: Returns, Sharpe ratio, max drawdown, win rate
+- **Risk Analytics**: Volatility, VaR, Alpha, Beta
+- **Trade History**: Complete trade-by-trade breakdown
+
+### Key Performance Metrics
+- **Total Return**: Overall strategy performance
+- **Sharpe Ratio**: Risk-adjusted returns
+- **Max Drawdown**: Largest peak-to-trough decline
+- **Win Rate**: Percentage of profitable trades
+- **Alpha/Beta**: Performance vs. market benchmark
+
 ---
-## 👤 Author
-Developed by J. Paul — feel free to reach out or contribute!
+
+## 🔧 Key Features in Detail
+
+### Backtesting Engine
+- **Signal Generation**: Z-score based mean reversion signals
+- **Position Management**: Automated entry/exit based on defined rules
+- **Risk Management**: Stop-loss and profit-taking mechanisms
+- **Performance Calculation**: Comprehensive metrics and analytics
+
+### Data Integration
+- **Yahoo Finance API**: Real-time market data fetching
+- **Historical Data**: Extensive backtesting periods
+- **Multiple Securities**: Support for stocks, ETFs, and indices
+- **Data Validation**: Robust error handling and data quality checks
+
+### User Interface
+- **Responsive Design**: Mobile-friendly Bootstrap interface
+- **Interactive Dashboard**: Real-time strategy monitoring
+- **Intuitive Forms**: Easy strategy creation and editing
+- **Visual Feedback**: Clear performance indicators and status updates
+
+---
+
+## 📌 Current Status
+
+### ✅ Completed Features
+- ✅ Complete user authentication system
+- ✅ Strategy CRUD operations with validation
+- ✅ Advanced backtesting engine with 15+ metrics
+- ✅ Interactive dashboard with performance overview
+- ✅ Detailed backtest results and analysis
+- ✅ Yahoo Finance data integration
+- ✅ Responsive UI with Bootstrap 5
+- ✅ Cloud deployment ready (Replit)
+- ✅ Multi-ticker strategy support
+- ✅ Trade logging and analysis
+- ✅ Risk management and analytics
+
+### 🔄 In Progress
+- Performance charting and visualizations
+- Strategy comparison tools
+- Advanced filtering and search
+- Export functionality for results
+
+### 🎯 Future Enhancements
+- Additional strategy types (momentum, arbitrage)
+- Real-time paper trading
+- Portfolio optimization
+- Machine learning integration
+- Advanced charting with Plotly
+
+---
+
+## 👤 Author & Contributing
+
+**Developed by J. Paul**
+
+Contributions welcome! Please feel free to:
+- Report bugs or issues
+- Suggest new features
+- Submit pull requests
+- Improve documentation
+
+For questions or collaboration, reach out via GitHub issues.
+
+---
+
+## 📄 License
+
+This project is available under the MIT License. See LICENSE file for details.

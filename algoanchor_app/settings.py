@@ -8,8 +8,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-change-this-to-your-real-secret-key'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+
+# Allowed hosts for different deployment environments
+ALLOWED_HOSTS = [
+    # Local development
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    
+    # Replit deployment
+    'algo-anchor-swisswhale.replit.app',
+    
+    # Replit internal domains (for preview and development)
+    '*.replit.app',
+    '*.repl.it',
+    '*.replit.dev',
+    
+    # Allow any subdomain of replit (in case of changes)
+    '.replit.app',
+    '.repl.it',
+    '.replit.dev',
+]
+
+# Add any additional hosts from environment variable
+if os.getenv('ADDITIONAL_HOSTS'):
+    ALLOWED_HOSTS.extend(os.getenv('ADDITIONAL_HOSTS').split(','))
 
 # Application definition
 INSTALLED_APPS = [
@@ -77,6 +101,9 @@ USE_TZ = True
 # Static files (CSS, JS)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'core' / 'static']
+
+# Static files collection for production (e.g., Replit deployment)
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
