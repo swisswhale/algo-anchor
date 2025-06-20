@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/strategy.css' %}">
+<link rel="stylesheet" href="{% static 'css/strategy.css' %}" />
 {% endblock %}
 
 {% block content %}
@@ -14,8 +14,21 @@
 
         <form method="post">
           {% csrf_token %}
-          {{ form.as_p }}
-          <button type="submit" class="btn btn-dark w-100 mt-3">Update Strategy</button>
+          {{ form.name.label_tag }} {{ form.name }}
+          {{ form.lookback_days.label_tag }} {{ form.lookback_days }}
+          {{ form.entry_threshold.label_tag }} {{ form.entry_threshold }}
+          {{ form.exit_rule.label_tag }} {{ form.exit_rule }}
+
+          {{ form.asset_class.label_tag }}
+          {{ form.asset_class }}
+
+          <label for="ticker-select" class="form-label mt-3">Select Tickers</label>
+          <select id="ticker-select" class="form-select" multiple></select>
+          <input type="hidden" name="tickers" id="selected-tickers" />
+
+          <div class="text-end mt-3">
+            <button type="submit" class="btn btn-primary w-100">Update Strategy</button>
+          </div>
         </form>
 
         <p class="text-center mt-3 small text-muted">
@@ -25,4 +38,39 @@
     </div>
   </div>
 </div>
+
+<script>
+const assetSelect = document.getElementById('id_asset_class');
+const tickerSelect = document.getElementById('ticker-select');
+const tickerHidden = document.getElementById('selected-tickers');
+
+// Optional: Pre-select previously chosen tickers
+const preselected = "{{ strategy.securities.all.values_list('symbol', flat=True)|join:',' }}".split(',');
+tickerHidden.value = preselected.join(',');
+
+assetSelect.addEventListener('change', () => {
+  const assetClass = assetSelect.value;
+  fetch(`/api/tickers/?asset_class=${assetClass}`)
+    .then(res => res.json())
+    .then(data => {
+      tickerSelect.innerHTML = '';
+      data.forEach(ticker => {
+        const opt = document.createElement('option');
+        opt.value = ticker.symbol;
+        opt.text = `${ticker.symbol} (${ticker.name})`;
+        if (preselected.includes(ticker.symbol)) {
+          opt.selected = true;
+        }
+        tickerSelect.appendChild(opt);
+      });
+    });
+});
+
+tickerSelect.addEventListener('change', () => {
+  const selected = Array.from(tickerSelect.selectedOptions)
+    .map(opt => opt.value)
+    .slice(0, 5);
+  tickerHidden.value = selected.join(',');
+});
+</script>
 {% endblock %}

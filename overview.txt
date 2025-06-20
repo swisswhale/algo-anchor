@@ -1,0 +1,57 @@
+📈 AlgoAnchor – Django Strategy Backtesting Platform
+
+Overview:
+AlgoAnchor is a Django-based web application that allows authenticated users to create, manage, and backtest mean reversion trading strategies using financial data sourced from Yahoo Finance.
+
+⸻
+
+✅ Core Features:
+
+1. Authentication & Profiles
+	•	User registration, login, logout
+	•	User profile view (/profile/) and edit (/profile/edit/)
+	•	Profile managed via UserUpdateForm
+
+2. Dashboard (/dashboard/)
+	•	View all created strategies
+	•	Buttons: View, Edit, Delete
+	•	Inline rename of strategy name via modal
+	•	“+ New Strategy” (routes to strategy creation)
+
+3. Strategy Management
+	•	CRUD for strategies (create, edit, delete, detail)
+	•	Ticker input: users enter 1–5 comma-separated tickers
+	•	Automatically fetches metadata (name, sector, market cap) from Yahoo Finance using yfinance
+	•	Tickers saved via ManyToManyField to Security model
+	•	Strategy includes: name, lookback_days, entry_threshold, exit_rule, and tickers
+
+4. Ticker Infrastructure
+	•	Securities fetched via yfinance
+	•	Scripts available to preload S&P 500 and DJI tickers
+	•	Optional autocomplete functionality
+	•	Sectors, market caps are saved
+
+5. Backtesting
+	•	Auto-triggered on Strategy creation (via Django signal)
+	•	For single-ticker strategies:
+	•	Fetch historical price data
+	•	Compute:
+	•	Cumulative Return
+	•	Sharpe Ratio
+	•	Max Drawdown
+	•	Win Rate
+	•	Trade log is stored in BacktestResult
+
+6. Strategy Detail View
+	•	Display full strategy info and backtest results
+	•	Price chart (Plotly or Chart.js)
+	•	Basic statistics (rolling mean, z-score, etc.)
+	•	Visual markers for entry/exit logic
+
+7. Admin Interface
+	•	View and manage:
+	•	Users
+	•	Securities
+	•	Strategies
+	•	PriceData
+	•	BacktestResult

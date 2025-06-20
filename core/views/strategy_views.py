@@ -2,6 +2,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from core.models import Strategy
 from core.forms import StrategyForm
+from core.utils.charting import generate_strategy_chart
+from core.utils.backtest import run_mean_reversion_backtest
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
@@ -15,24 +17,30 @@ def strategy_list(request):
 @login_required
 def strategy_create(request):
     if request.method == 'POST':
-        form = StrategyForm(request.POST)
+        form = StrategyForm(request.POST, user=request.user)
         if form.is_valid():
-            strategy = form.save(commit=False)
-            strategy.user = request.user
-            strategy.save()
-            return redirect('dashboard')  # Or 'strategy_detail', strategy.pk
+            form.save()
+            messages.success(request, "Strategy created successfully.")
+            return redirect('dashboard')
     else:
-        form = StrategyForm()
-        return render(request, 'strategies/strategy_create.html', {
-            'form': form,
-            'title': 'Create Strategy'
-        })            
+        form = StrategyForm(user=request.user)
+    return render(request, 'strategies/strategy_create.html', {'form': form})
 
 # Strategy Detail
 @login_required
 def strategy_detail(request, pk):
     strategy = get_object_or_404(Strategy, pk=pk, user=request.user)
-    return render(request, 'strategies/strategy_detail.html', {'strategy': strategy})
+    ticker = strategy.tickers.first().symbol if strategy.tickers.exists() else 'AAPL'
+    chart_path = generate_strategy_chart(ticker, strategy.lookback_days, strategy.entry_threshold, 0.5)
+
+    backtest = run_mean_reversion_backtest(ticker, strategy.lookback_days, strategy.entry_threshold, 0.5)
+
+    context = {
+        'strategy': strategy,
+        'chart_path': chart_path,
+        'backtest': backtest,
+    }
+    return render(request, 'strategies/detail.html', context)
 
 # Edit Strategy
 @login_required

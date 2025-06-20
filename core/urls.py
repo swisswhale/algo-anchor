@@ -1,11 +1,5 @@
 from django.urls import path
-from core.views import strategy_views
-from .views import (
-    dashboard_views,
-    auth_views,
-    profile_views,
-    strategy_views,
-)
+from core.views import dashboard_views, auth_views, profile_views, strategy_views, ticker_views
 
 urlpatterns = [
     # Public home
@@ -21,7 +15,7 @@ urlpatterns = [
 
     # Strategies
     path('strategies/', strategy_views.strategy_list, name='strategy_list'),
-    path('strategies/new/', strategy_views.strategy_create, name='strategy_create'), path('strategies/<int:pk>/', strategy_views.strategy_detail, name='strategy_detail'),
+    path('strategies/new/', strategy_views.strategy_create, name='strategy_create'), 
     path('strategies/<int:pk>/', strategy_views.strategy_detail, name='strategy_detail'),
     path('strategies/<int:pk>/edit/', strategy_views.strategy_edit, name='strategy_edit'),
     path('strategies/<int:pk>/rename/', strategy_views.strategy_rename, name='strategy_rename'),
@@ -30,4 +24,8 @@ urlpatterns = [
     # Profile
     path('profile/', profile_views.profile_view, name='profile'),
     path('profile/edit/', profile_views.edit_profile, name='edit_profile'),
+    path('profile/change-password/', profile_views.change_password, name='change_password'),
+    
+    path('api/ticker-search/', ticker_views.ticker_search, name='ticker_search'),
+    path('api/tickers/', ticker_views.tickers_by_asset_class, name='tickers_by_asset_class'),
 ]

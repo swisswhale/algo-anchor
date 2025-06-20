@@ -1,24 +1,36 @@
 {% extends "base.html" %} {% load static %} {% block extra_css %}
+<link
+  href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+  rel="stylesheet"
+/>
 <link rel="stylesheet" href="{% static 'css/strategy.css' %}" />
 {% endblock %} {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-8 col-lg-6">
-    <div class="card shadow-sm border-0 mt-5">
-      <div class="card-body">
-        <h2 class="card-title text-center mb-4">{{ title }}</h2>
+<div class="container mt-5">
+  <h2>Create Strategy</h2>
+  <form method="post">
+    {% csrf_token %}
 
-        <form method="post">
-          {% csrf_token %} {{ form.as_p }}
-          <button type="submit" class="btn btn-dark w-100 mt-3">
-            Save Strategy
-          </button>
-        </form>
+    <div class="mb-3">{{ form.name.label_tag }} {{ form.name }}</div>
 
-        <p class="text-center mt-3 small text-muted">
-          <a href="{% url 'dashboard' %}">← Back to dashboard</a>
-        </p>
-      </div>
+    <div class="mb-3">
+      {{ form.lookback_days.label_tag }} {{ form.lookback_days }}
     </div>
-  </div>
+
+    <div class="mb-3">
+      {{ form.entry_threshold.label_tag }} {{ form.entry_threshold }}
+    </div>
+
+    <div class="mb-3">{{ form.exit_rule.label_tag }} {{ form.exit_rule }}</div>
+
+    <div class="mb-3">
+      <label for="tickers" class="form-label">Securities (1–5)</label>
+      {{ form.tickers }}
+      <div class="form-text">{{ form.tickers.help_text }}</div>
+    </div>
+
+    <div class="text-end">
+      <button type="submit" class="btn btn-success">Save Strategy</button>
+    </div>
+  </form>
 </div>
 {% endblock %}
