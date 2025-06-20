@@ -127,98 +127,125 @@
           </h5>
         </div>
         <div class="card-body">
-          {% if chart_path %}
-          <div class="text-center mb-4">
-            <img
-              src="{{ chart_path }}"
-              class="img-fluid"
-              alt="Strategy Chart"
-              style="max-height: 400px"
-            />
+          {% if has_charts %}
+          <!-- Interactive Price Chart -->
+          <div class="mb-4">{{ price_chart_html|safe }}</div>
+
+          {% if performance_chart_html %}
+          <!-- Performance Comparison Chart -->
+          <div class="mb-4">{{ performance_chart_html|safe }}</div>
+          {% endif %}
+
+          <!-- Technical Statistics -->
+          {% if stats %}
+          <div class="row mb-4">
+            <div class="col-lg-6">
+              <div class="card border-light">
+                <div class="card-header bg-light">
+                  <h6 class="mb-0">Technical Indicators</h6>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-6">
+                      <small class="text-muted">Current Z-Score:</small>
+                      <div
+                        class="fw-bold {% if stats.current_z_score > 2 %}text-danger{% elif stats.current_z_score < -2 %}text-success{% else %}text-dark{% endif %}"
+                      >
+                        {{ stats.current_z_score|floatformat:2 }}
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <small class="text-muted">Avg Z-Score:</small>
+                      <div class="fw-bold">
+                        {{ stats.avg_z_score|floatformat:2 }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row mt-2">
+                    <div class="col-6">
+                      <small class="text-muted">Z-Score Volatility:</small>
+                      <div class="fw-bold">
+                        {{ stats.z_score_std|floatformat:2 }}
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <small class="text-muted">Price Volatility:</small>
+                      <div class="fw-bold">
+                        {{ stats.price_volatility|floatformat:2|mul:100 }}%
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="card border-light">
+                <div class="card-header bg-light">
+                  <h6 class="mb-0">Market Data</h6>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-6">
+                      <small class="text-muted">Current Price:</small>
+                      <div class="fw-bold">
+                        ${{ stats.current_price|floatformat:2 }}
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <small class="text-muted">Avg Volume:</small>
+                      <div class="fw-bold">
+                        {{ stats.avg_volume|floatformat:0 }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row mt-2">
+                    <div class="col-6">
+                      <small class="text-muted">Data Points:</small>
+                      <div class="fw-bold">{{ stats.data_points }}</div>
+                    </div>
+                    <div class="col-6">
+                      {% if stats.backtest_return %}
+                      <small class="text-muted">Backtest Return:</small>
+                      <div
+                        class="fw-bold {% if stats.backtest_return > 0 %}text-success{% else %}text-danger{% endif %}"
+                      >
+                        {{ stats.backtest_return|floatformat:2|mul:100 }}%
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          {% else %}
+          {% endif %}
+
+          <!-- Trade Markers Info -->
+          {% if trade_markers %}
           <div class="alert alert-info">
             <i class="fas fa-info-circle"></i>
-            Chart generation is temporarily unavailable. This will be
-            implemented in Step 6.
+            <strong>{{ trade_markers|length }} historical trades</strong> are
+            marked on the chart above. Green triangles indicate buy signals, red
+            triangles indicate sell signals.
           </div>
-          {% endif %} {% if backtest %}
-          <div class="row">
-            <div class="col-md-6">
-              <h6>Backtest Summary</h6>
-              <div class="table-responsive">
-                <table class="table table-sm">
-                  <tbody>
-                    <tr>
-                      <td>Total Return:</td>
-                      <td class="text-end fw-bold">
-                        {{ backtest.total_return|floatformat:2 }}%
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Total Trades:</td>
-                      <td class="text-end">{{ backtest.total_trades }}</td>
-                    </tr>
-                    <tr>
-                      <td>Winning Trades:</td>
-                      <td class="text-end text-success">
-                        {{ backtest.winning_trades }}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Losing Trades:</td>
-                      <td class="text-end text-danger">
-                        {{ backtest.losing_trades }}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <h6>Risk Metrics</h6>
-              <div class="table-responsive">
-                <table class="table table-sm">
-                  <tbody>
-                    <tr>
-                      <td>Volatility:</td>
-                      <td class="text-end">
-                        {{ backtest.volatility|floatformat:2 }}%
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Sharpe Ratio:</td>
-                      <td class="text-end">
-                        {{ backtest.sharpe_ratio|floatformat:3 }}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Max Drawdown:</td>
-                      <td class="text-end text-danger">
-                        {{ backtest.max_drawdown|floatformat:2 }}%
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          {% else %}
-          <div class="alert alert-warning">
-            <i class="fas fa-exclamation-triangle"></i>
-            Backtest data unavailable. This will be implemented in Step 5.
-          </div>
-          {% endif %} {% if strategy.backtestresult.trade_log %}
-          <div class="mt-4">
-            <h6>Trade Log</h6>
-            <div
-              class="bg-light p-3 rounded"
-              style="max-height: 200px; overflow-y: auto"
+          {% endif %} {% else %}
+          <!-- No Charts Available -->
+          <div class="text-center py-5">
+            <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+            <h5>Chart Analysis Unavailable</h5>
+            <p class="text-muted mb-4">
+              {% if not strategy.tickers.exists %} No tickers assigned to this
+              strategy. {% else %} Unable to fetch market data for chart
+              generation. {% endif %}
+            </p>
+            {% if not strategy.tickers.exists %}
+            <a
+              href="{% url 'strategy_edit' strategy.pk %}"
+              class="btn btn-primary"
             >
-              <pre class="mb-0 small">
-{{ strategy.backtestresult.trade_log }}</pre
-              >
-            </div>
+              <i class="fas fa-plus"></i> Add Tickers
+            </a>
+            {% endif %}
           </div>
           {% endif %}
         </div>

@@ -24,3 +24,6 @@ python-decouple
 # Dev Tools
 django-debug-toolbar
 black
+
+# Interactive charting
+plotly==5.22.0

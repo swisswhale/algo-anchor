@@ -2,10 +2,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from core.models import Strategy
 from core.forms import StrategyForm
-from core.utils.charting import generate_strategy_chart
-from core.utils.backtest import run_mean_reversion_backtest
+from core.utils.charting import generate_strategy_chart_html, generate_trade_markers_data
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Strategy List
 @login_required
@@ -36,23 +38,36 @@ def strategy_create(request):
 def strategy_detail(request, pk):
     strategy = get_object_or_404(Strategy, pk=pk, user=request.user)
     
-    # Safely handle chart generation (will be implemented in Step 6)
-    chart_path = None
-    backtest = None
+    # Generate comprehensive charts and analytics
+    price_chart_html = None
+    performance_chart_html = None
+    stats = {}
+    trade_markers = []
     
     try:
         if strategy.tickers.exists():
-            ticker = strategy.tickers.first().symbol
-            # Temporarily disable chart generation to avoid errors
-            # chart_path = generate_strategy_chart(ticker, strategy.lookback_days, strategy.entry_threshold, 0.5)
-            # backtest = run_mean_reversion_backtest(ticker, strategy.lookback_days, strategy.entry_threshold, 0.5)
+            # Generate interactive charts
+            price_chart_html, performance_chart_html, stats = generate_strategy_chart_html(strategy)
+            
+            # Generate trade markers for overlay
+            trade_markers = generate_trade_markers_data(strategy)
+            
+            if price_chart_html:
+                messages.success(request, "Charts generated successfully!")
+            else:
+                messages.warning(request, "Unable to generate charts - insufficient data or network issues.")
+                
     except Exception as e:
-        messages.warning(request, "Chart generation temporarily unavailable.")
+        logger.error(f"Error generating charts for strategy {strategy.name}: {str(e)}")
+        messages.error(request, "Chart generation failed. Please try again later.")
 
     context = {
         'strategy': strategy,
-        'chart_path': chart_path,
-        'backtest': backtest,
+        'price_chart_html': price_chart_html,
+        'performance_chart_html': performance_chart_html,
+        'stats': stats,
+        'trade_markers': trade_markers,
+        'has_charts': price_chart_html is not None,
     }
     return render(request, 'strategies/detail.html', context)
 
