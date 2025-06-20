@@ -1,0 +1,423 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Backtest Results -
+{{ strategy.name }}{% endblock %} {% block extra_css %}
+<style>
+  .metric-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  .metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  .metric-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+  .positive {
+    color: #28a745;
+  }
+  .negative {
+    color: #dc3545;
+  }
+  .trade-row:hover {
+    background-color: #f8f9fa;
+  }
+  .chart-container {
+    height: 400px;
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+</style>
+{% endblock %} {% block content %}
+{% csrf_token %}
+<div class="container-fluid mt-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2>Backtest Results</h2>
+          <p class="text-muted mb-0">{{ strategy.name }}</p>
+          <small class="text-muted">
+            Strategy: {{ strategy.get_strategy_type_display|default:"Mean
+            Reversion" }} | Tickers: {{ strategy.get_tickers_display }} |
+            Lookback: {{ strategy.lookback_days }} days
+          </small>
+        </div>
+        <div>
+          <a
+            href="{% url 'strategy_detail' strategy.id %}"
+            class="btn btn-outline-secondary me-2"
+          >
+            <i class="fas fa-arrow-left"></i> Back to Strategy
+          </a>
+          {% if has_results %}
+          <button
+            type="button"
+            class="btn btn-primary"
+            onclick="rerunBacktest()"
+          >
+            <i class="fas fa-sync-alt"></i> Re-run Backtest
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if has_results %}
+  <!-- Performance Metrics -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="metric-card">
+        <div
+          class="metric-value {{ backtest_result.cumulative_return|floatformat:2|add:0|yesno:'positive,negative,neutral' }}"
+        >
+          {{ backtest_result.cumulative_return|floatformat:2|mul:100 }}%
+        </div>
+        <div class="metric-label">Total Return</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="metric-card">
+        <div class="metric-value">
+          {{ backtest_result.sharpe_ratio|floatformat:2|default:"N/A" }}
+        </div>
+        <div class="metric-label">Sharpe Ratio</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="metric-card">
+        <div
+          class="metric-value {{ backtest_result.max_drawdown|floatformat:2|add:0|yesno:'negative,positive,neutral' }}"
+        >
+          {{ backtest_result.max_drawdown|floatformat:2|mul:100 }}%
+        </div>
+        <div class="metric-label">Max Drawdown</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="metric-card">
+        <div class="metric-value">
+          {{ backtest_result.win_rate|floatformat:1|mul:100 }}%
+        </div>
+        <div class="metric-label">Win Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Metrics -->
+  <div class="row mb-4">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Risk Metrics</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-6">
+              <p>
+                <strong>Volatility:</strong> {{
+                backtest_result.volatility|floatformat:2|mul:100|default:"N/A"
+                }}%
+              </p>
+              <p>
+                <strong>Sortino Ratio:</strong> {{
+                backtest_result.sortino_ratio|floatformat:2|default:"N/A" }}
+              </p>
+              <p>
+                <strong>Calmar Ratio:</strong> {{
+                backtest_result.calmar_ratio|floatformat:2|default:"N/A" }}
+              </p>
+            </div>
+            <div class="col-6">
+              <p>
+                <strong>VaR (95%):</strong> {{
+                backtest_result.value_at_risk_95|floatformat:2|mul:100|default:"N/A"
+                }}%
+              </p>
+              <p>
+                <strong>Alpha:</strong> {{
+                backtest_result.alpha|floatformat:2|mul:100|default:"N/A" }}%
+              </p>
+              <p>
+                <strong>Beta:</strong> {{
+                backtest_result.beta|floatformat:2|default:"N/A" }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Trade Statistics</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-6">
+              <p>
+                <strong>Total Trades:</strong> {{ backtest_result.total_trades
+                }}
+              </p>
+              <p>
+                <strong>Winning Trades:</strong> {{
+                backtest_result.winning_trades }}
+              </p>
+              <p>
+                <strong>Losing Trades:</strong> {{ backtest_result.losing_trades
+                }}
+              </p>
+            </div>
+            <div class="col-6">
+              <p>
+                <strong>Avg Trade:</strong> {{
+                backtest_result.avg_trade_return|floatformat:2|mul:100|default:"N/A"
+                }}%
+              </p>
+              <p>
+                <strong>Avg Winner:</strong> {{
+                backtest_result.avg_winning_trade|floatformat:2|mul:100|default:"N/A"
+                }}%
+              </p>
+              <p>
+                <strong>Avg Loser:</strong> {{
+                backtest_result.avg_losing_trade|floatformat:2|mul:100|default:"N/A"
+                }}%
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Chart Placeholder -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Performance Chart</h5>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <div class="text-center text-muted pt-5">
+              <i class="fas fa-chart-line fa-3x mb-3"></i>
+              <p>
+                Performance chart will be implemented in Step 6: Strategy Detail
+                View
+              </p>
+              <small
+                >This will show strategy returns vs benchmark over time</small
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trade Log -->
+  {% if trades %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div
+          class="card-header d-flex justify-content-between align-items-center"
+        >
+          <h5 class="mb-0">Trade Log</h5>
+          <small class="text-muted">Showing {{ trades|length }} trades</small>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th>Date</th>
+                  <th>Action</th>
+                  <th>Symbol</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th>Signal</th>
+                  <th>P&L</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for trade in trades %}
+                <tr class="trade-row">
+                  <td>{{ trade.date }}</td>
+                  <td>
+                    <span
+                      class="badge bg-{% if trade.trade_type == 'BUY' %}success{% elif trade.trade_type == 'SELL' %}danger{% else %}secondary{% endif %}"
+                    >
+                      {{ trade.trade_type }}
+                    </span>
+                  </td>
+                  <td><strong>{{ trade.security.symbol }}</strong></td>
+                  <td>${{ trade.price|floatformat:2 }}</td>
+                  <td>{{ trade.quantity }}</td>
+                  <td>{{ trade.signal_value|floatformat:2|default:"N/A" }}</td>
+                  <td>
+                    {% if trade.pnl %}
+                    <span
+                      class="{% if trade.pnl > 0 %}text-success{% else %}text-danger{% endif %}"
+                    >
+                      ${{ trade.pnl|floatformat:2 }}
+                    </span>
+                    {% else %}
+                    <span class="text-muted">N/A</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          {% if trades.has_other_pages %}
+          <div class="p-3">
+            <nav aria-label="Trade log pagination">
+              <ul class="pagination pagination-sm justify-content-center mb-0">
+                {% if trades.has_previous %}
+                <li class="page-item">
+                  <a
+                    class="page-link"
+                    href="?page={{ trades.previous_page_number }}"
+                    >Previous</a
+                  >
+                </li>
+                {% endif %}
+
+                <li class="page-item active">
+                  <span class="page-link">
+                    Page {{ trades.number }} of {{ trades.paginator.num_pages }}
+                  </span>
+                </li>
+
+                {% if trades.has_next %}
+                <li class="page-item">
+                  <a
+                    class="page-link"
+                    href="?page={{ trades.next_page_number }}"
+                    >Next</a
+                  >
+                </li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Backtest Info -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <small class="text-muted">
+            <strong>Backtest Period:</strong>
+            {{ backtest_result.backtest_start_date|default:"N/A" }} to {{
+            backtest_result.backtest_end_date|default:"N/A" }}
+            <br />
+            <strong>Last Updated:</strong> {{ backtest_result.updated_at }}
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- No Results -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <i class="fas fa-chart-line fa-4x text-muted mb-4"></i>
+          <h4>No Backtest Results Available</h4>
+          <p class="text-muted mb-4">
+            This strategy hasn't been backtested yet. Click the button below to
+            run a backtest.
+          </p>
+          <button
+            type="button"
+            class="btn btn-primary btn-lg"
+            onclick="rerunBacktest()"
+          >
+            <i class="fas fa-play"></i> Run Backtest
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Loading Modal -->
+<div
+  class="modal fade"
+  id="loadingModal"
+  tabindex="-1"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center py-4">
+        <div class="spinner-border text-primary mb-3" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <h5>Running Backtest...</h5>
+        <p class="text-muted mb-0">This may take a few moments.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  function rerunBacktest() {
+    const loadingModal = new bootstrap.Modal(
+      document.getElementById("loadingModal")
+    );
+    loadingModal.show();
+
+    fetch(`{% url 'rerun_backtest' strategy.id %}`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+          .value,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        loadingModal.hide();
+
+        if (data.success) {
+          // Show success message and reload page
+          alert("Backtest completed successfully!");
+          window.location.reload();
+        } else {
+          alert("Backtest failed: " + (data.error || "Unknown error"));
+        }
+      })
+      .catch((error) => {
+        loadingModal.hide();
+        console.error("Error:", error);
+        alert("An error occurred while running the backtest.");
+      });
+  }
+</script>
+{% endblock %}

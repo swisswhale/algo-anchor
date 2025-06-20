@@ -11,12 +11,12 @@ psycopg2-binary
 pandas
 numpy
 
-# Charting
-matplotlib
-chartly
-
-# Financial data from Yahoo
+# Financial data
 yfinance
+
+# Web scraping for ticker data
+requests
+beautifulsoup4
 
 # Environment variable management (for settings.py secrets)
 python-decouple

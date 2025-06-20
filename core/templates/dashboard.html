@@ -175,6 +175,15 @@
                       >
                         <i class="fas fa-eye"></i>
                       </a>
+                      {% if strategy.backtestresult %}
+                      <a
+                        href="{% url 'backtest_detail' strategy.pk %}"
+                        class="btn btn-outline-success"
+                        title="View Backtest Results"
+                      >
+                        <i class="fas fa-chart-bar"></i>
+                      </a>
+                      {% endif %}
                       <a
                         href="{% url 'strategy_edit' strategy.pk %}"
                         class="btn btn-outline-secondary"
