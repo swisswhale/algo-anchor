@@ -25,6 +25,12 @@ def strategy_create(request):
             strategy.user = request.user
             strategy.save()
             form.save_m2m()  # Save many-to-many relationships
+            
+            # Manually handle ticker assignment since it's a custom field
+            if hasattr(strategy, '_pending_tickers'):
+                strategy.tickers.set(strategy._pending_tickers)
+                del strategy._pending_tickers
+                
             messages.success(request, f"Strategy '{strategy.name}' created successfully!")
             return redirect('dashboard')
         else:
@@ -104,9 +110,12 @@ def strategy_rename(request, pk):
 @login_required
 def strategy_delete(request, pk):
     strategy = get_object_or_404(Strategy, pk=pk, user=request.user)
+    
     if request.method == 'POST':
         strategy_name = strategy.name
         strategy.delete()
         messages.success(request, f"Strategy '{strategy_name}' deleted successfully!")
         return redirect('dashboard')
+    
+    # If GET request, show the confirmation page
     return render(request, 'strategies/delete.html', {'strategy': strategy})

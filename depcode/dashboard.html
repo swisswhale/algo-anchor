@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load static %}
-{% load math_filters %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
@@ -153,22 +152,24 @@
                   <td class="align-middle">{{ strategy.entry_threshold }}</td>
                   <td class="align-middle">
                     {% if strategy.backtestresult %}
-                      <div class="small">
-                        {% if strategy.backtestresult.cumulative_return is not None %}
-                          <div class="{% if strategy.backtestresult.cumulative_return > 0 %}text-success{% else %}text-danger{% endif %}">
-                            <i class="fas fa-chart-line"></i> 
-                            {{ strategy.backtestresult.cumulative_return|floatformat:2 }}%
-                          </div>
-                        {% endif %}
-                        {% if strategy.backtestresult.sharpe_ratio is not None %}
-                          <div class="text-muted">
-                            <i class="fas fa-tachometer-alt"></i> 
-                            Sharpe: {{ strategy.backtestresult.sharpe_ratio|floatformat:2 }}
-                          </div>
-                        {% endif %}
+                    <div class="small">
+                      {% if strategy.backtestresult.cumulative_return %}
+                      <div
+                        class="{% if strategy.backtestresult.cumulative_return > 0 %}text-success{% else %}text-danger{% endif %}"
+                      >
+                        <i class="fas fa-chart-line"></i> {{
+                        strategy.backtestresult.cumulative_return|floatformat:2
+                        }}%
                       </div>
+                      {% endif %} {% if strategy.backtestresult.sharpe_ratio %}
+                      <div class="text-muted">
+                        <i class="fas fa-tachometer-alt"></i> Sharpe: {{
+                        strategy.backtestresult.sharpe_ratio|floatformat:2 }}
+                      </div>
+                      {% endif %}
+                    </div>
                     {% else %}
-                      <span class="badge bg-secondary">Pending</span>
+                    <span class="badge bg-secondary">Pending</span>
                     {% endif %}
                   </td>
                   <td class="align-middle">
@@ -277,13 +278,13 @@
                             {% if strategy.backtestresult %}
                             <div>
                               <strong>Performance:</strong>
-                              {% if strategy.backtestresult.cumulative_return is not None %}
-                                <span class="{% if strategy.backtestresult.cumulative_return > 0 %}text-success{% else %}text-danger{% endif %}">
-                                  {{ strategy.backtestresult.cumulative_return|floatformat:2 }}%
-                                </span>
-                              {% else %}
-                                <span class="text-muted">No data</span>
-                              {% endif %}
+                              <span
+                                class="{% if strategy.backtestresult.cumulative_return > 0 %}text-success{% else %}text-danger{% endif %}"
+                              >
+                                {{
+                                strategy.backtestresult.cumulative_return|floatformat:2
+                                }}%
+                              </span>
                             </div>
                             {% endif %}
                           </small>

@@ -82,16 +82,12 @@ class StrategyForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        
-        if commit:
-            instance.save()
-
-        # Handle tickers
+        # Process tickers and create Security objects
         tickers = self.cleaned_data.get('tickers', [])
+        print(f"DEBUG: Tickers from cleaned_data: {tickers}")
         securities = []
         for symbol in tickers:
             security, created = Security.objects.get_or_create(symbol=symbol)
-            # Fetch metadata from yfinance if new or incomplete
             if created or not security.name:
                 try:
                     info = yf.Ticker(symbol).info
@@ -100,16 +96,39 @@ class StrategyForm(forms.ModelForm):
                     security.sector = info.get("sector")
                     security.save()
                 except Exception:
-                    # If yfinance fails, just use the symbol as name
                     if not security.name:
                         security.name = symbol
                         security.save()
             securities.append(security)
-
-        instance.tickers.set(securities)
-        return instance
+        print(f"DEBUG: Securities created: {[s.symbol for s in securities]}")
+        
+        if commit:
+            instance.save()
+            # Set the tickers immediately since we're committing
+            instance.tickers.set(securities)
+            print(f"DEBUG: Tickers assigned to strategy (commit=True), count: {instance.tickers.count()}")
+        else:
+            # Store securities for later assignment
+            instance._pending_tickers = securities
+            print(f"DEBUG: Tickers stored for later assignment (commit=False)")
         
         return instance
+
+    def save_m2m(self):
+        print("ENTERING CUSTOM SAVE_M2M METHOD")
+        # First call parent save_m2m to handle any actual ModelForm M2M fields
+        super().save_m2m()
+        print("FINISHED CALLING PARENT SAVE_M2M")
+        
+        # Then handle our custom pending tickers
+        if hasattr(self.instance, '_pending_tickers'):
+            print(f"DEBUG: Found pending tickers: {[s.symbol for s in self.instance._pending_tickers]}")
+            self.instance.tickers.set(self.instance._pending_tickers)
+            print(f"DEBUG: Tickers assigned in save_m2m, count: {self.instance.tickers.count()}")
+            del self.instance._pending_tickers
+        else:
+            print("DEBUG: No pending tickers found in save_m2m")
+        print("EXITING CUSTOM SAVE_M2M METHOD")
 
 
 class UserUpdateForm(forms.ModelForm):

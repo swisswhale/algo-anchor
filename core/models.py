@@ -205,7 +205,7 @@ class TradeLog(models.Model):
 @receiver(post_save, sender=Strategy)
 def run_backtest_on_save(sender, instance, created, **kwargs):
     """Auto-trigger comprehensive backtesting when a strategy is created"""
-    if created:
+    if created and hasattr(instance, 'user') and instance.user:
         from .services.backtest_engine import run_comprehensive_backtest
         try:
             # Run comprehensive backtest
@@ -252,7 +252,7 @@ def run_backtest_on_save(sender, instance, created, **kwargs):
                     quantity=trade['quantity'],
                     commission=trade['commission'],
                     signal_value=trade.get('signal_value'),
-                    notes=f"Auto-generated from {instance.strategy_type} strategy"
+                    notes=f"Auto-generated from mean reversion strategy"
                 )
             
             logger.info(f"Backtest completed successfully for strategy {instance.name}")
@@ -262,6 +262,5 @@ def run_backtest_on_save(sender, instance, created, **kwargs):
             # Create a minimal result to indicate failure
             BacktestResult.objects.create(
                 strategy=instance,
-                total_trades=0,
-                notes=f"Backtest failed: {str(e)}"
+                total_trades=0
             )

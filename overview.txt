@@ -49,9 +49,10 @@ AlgoAnchor is a Django-based web application that allows authenticated users to 
 	•	Visual markers for entry/exit logic
 
 7. Admin Interface
-	•	View and manage:
-	•	Users
-	•	Securities
-	•	Strategies
-	•	PriceData
-	•	BacktestResult
+	•	Enhanced user management with strategy analytics
+	•	Comprehensive securities administration with market cap formatting
+	•	Advanced strategy management dashboard with performance tracking
+	•	Detailed backtest results analysis with color-coded metrics
+	•	Complete trade log tracking and P&L visualization
+	•	Bulk actions for efficient administration
+	•	Cross-reference navigation between related objects
