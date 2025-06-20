@@ -15,7 +15,18 @@ class StrategyForm(forms.ModelForm):
 
     class Meta:
         model = Strategy
-        fields = ['name', 'lookback_days', 'entry_threshold', 'exit_rule', 'tickers']
+        fields = ['name', 'lookback_days', 'entry_threshold', 'exit_rule']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to all fields
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
+            
+        # If editing an existing strategy, populate tickers field
+        if self.instance.pk:
+            existing_tickers = list(self.instance.tickers.values_list('symbol', flat=True))
+            self.fields['tickers'].initial = ', '.join(existing_tickers)
 
     def clean_tickers(self):
         ticker_str = self.cleaned_data['tickers']
@@ -26,28 +37,32 @@ class StrategyForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        tickers = self.cleaned_data.get('tickers', [])
-
+        
         if commit:
             instance.save()
 
-        # Link tickers to strategy
+        # Handle tickers
+        tickers = self.cleaned_data.get('tickers', [])
         securities = []
         for symbol in tickers:
-            security, _ = Security.objects.get_or_create(symbol=symbol)
-            # optionally pull metadata from yfinance
-            if not security.name or not security.market_cap:
+            security, created = Security.objects.get_or_create(symbol=symbol)
+            # Fetch metadata from yfinance if new or incomplete
+            if created or not security.name:
                 try:
                     info = yf.Ticker(symbol).info
-                    security.name = info.get("shortName") or security.name
+                    security.name = info.get("longName") or info.get("shortName") or symbol
                     security.market_cap = info.get("marketCap")
                     security.sector = info.get("sector")
                     security.save()
                 except Exception:
-                    pass
+                    # If yfinance fails, just use the symbol as name
+                    if not security.name:
+                        security.name = symbol
+                        security.save()
             securities.append(security)
 
         instance.tickers.set(securities)
+        return instance
         
         return instance
 

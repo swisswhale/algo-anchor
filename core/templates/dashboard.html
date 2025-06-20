@@ -1,64 +1,297 @@
 {% extends "base.html" %} {% load static %} {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
 {% endblock %} {% block content %}
-<div class="mb-4 text-center">
-  <h2 class="fw-bold">📊 Your Strategies</h2>
-  <p class="text-muted">
-    Manage, backtest, and review your mean reversion strategies.
-  </p>
+<div class="container-fluid mt-4">
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="fw-bold mb-1">
+            <i class="fas fa-dashboard text-primary"></i>
+            Welcome back, {{ user.first_name|default:user.username }}!
+          </h2>
+          <p class="text-muted mb-0">
+            Manage your trading strategies and track performance
+          </p>
+        </div>
+        <div>
+          <a href="{% url 'strategy_create' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> New Strategy
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-primary mb-2">
+            <i class="fas fa-chart-line fa-2x"></i>
+          </div>
+          <h3 class="fw-bold text-primary">{{ total_strategies }}</h3>
+          <p class="text-muted mb-0">Total Strategies</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-success mb-2">
+            <i class="fas fa-check-circle fa-2x"></i>
+          </div>
+          <h3 class="fw-bold text-success">{{ strategies_with_results }}</h3>
+          <p class="text-muted mb-0">Backtested</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-info mb-2">
+            <i class="fas fa-calendar fa-2x"></i>
+          </div>
+          <h3 class="fw-bold text-info">
+            {% if strategies %}{{ strategies.first.created_at|date:"M d" }}{%
+            else %}--{% endif %}
+          </h3>
+          <p class="text-muted mb-0">Latest Strategy</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-warning mb-2">
+            <i class="fas fa-clock fa-2x"></i>
+          </div>
+          <h3 class="fw-bold text-warning">
+            {% if user.date_joined %}{{
+            user.date_joined|timesince|truncatewords:1 }}{% else %}--{% endif %}
+          </h3>
+          <p class="text-muted mb-0">Member Since</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strategies Section -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+          <h4 class="mb-0"><i class="fas fa-list"></i> Your Strategies</h4>
+        </div>
+        <div class="card-body p-0">
+          {% if strategies %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="border-0">Strategy Name</th>
+                  <th class="border-0">Tickers</th>
+                  <th class="border-0">Lookback</th>
+                  <th class="border-0">Threshold</th>
+                  <th class="border-0">Performance</th>
+                  <th class="border-0">Created</th>
+                  <th class="border-0 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for strategy in strategies %}
+                <tr>
+                  <td class="align-middle">
+                    <!-- Inline Rename Form -->
+                    <form
+                      method="post"
+                      action="{% url 'strategy_rename' strategy.pk %}"
+                      class="d-inline rename-form"
+                    >
+                      {% csrf_token %}
+                      <input
+                        type="text"
+                        name="name"
+                        value="{{ strategy.name }}"
+                        class="form-control form-control-sm border-0 bg-transparent fw-semibold editable-name"
+                        style="width: auto; min-width: 150px"
+                        title="Click to edit strategy name"
+                        readonly
+                      />
+                    </form>
+                  </td>
+                  <td class="align-middle">
+                    <div class="d-flex flex-wrap gap-1">
+                      {% for ticker in strategy.tickers.all %}
+                      <span class="badge bg-light text-dark border"
+                        >{{ ticker.symbol }}</span
+                      >
+                      {% empty %}
+                      <span class="text-muted">No tickers</span>
+                      {% endfor %}
+                    </div>
+                  </td>
+                  <td class="align-middle">
+                    <span class="badge bg-info"
+                      >{{ strategy.lookback_days }} days</span
+                    >
+                  </td>
+                  <td class="align-middle">{{ strategy.entry_threshold }}</td>
+                  <td class="align-middle">
+                    {% if strategy.backtestresult %}
+                    <div class="small">
+                      {% if strategy.backtestresult.cumulative_return %}
+                      <div
+                        class="{% if strategy.backtestresult.cumulative_return > 0 %}text-success{% else %}text-danger{% endif %}"
+                      >
+                        <i class="fas fa-chart-line"></i> {{
+                        strategy.backtestresult.cumulative_return|floatformat:2
+                        }}%
+                      </div>
+                      {% endif %} {% if strategy.backtestresult.sharpe_ratio %}
+                      <div class="text-muted">
+                        <i class="fas fa-tachometer-alt"></i> Sharpe: {{
+                        strategy.backtestresult.sharpe_ratio|floatformat:2 }}
+                      </div>
+                      {% endif %}
+                    </div>
+                    {% else %}
+                    <span class="badge bg-secondary">Pending</span>
+                    {% endif %}
+                  </td>
+                  <td class="align-middle">
+                    <small class="text-muted"
+                      >{{ strategy.created_at|date:"M d, Y" }}</small
+                    >
+                  </td>
+                  <td class="align-middle text-center">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <a
+                        href="{% url 'strategy_detail' strategy.pk %}"
+                        class="btn btn-outline-primary"
+                        title="View Details"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </a>
+                      <a
+                        href="{% url 'strategy_edit' strategy.pk %}"
+                        class="btn btn-outline-secondary"
+                        title="Edit Strategy"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <button
+                        type="button"
+                        class="btn btn-outline-danger"
+                        title="Delete Strategy"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deleteModal{{ strategy.pk }}"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Delete Modal -->
+                <div
+                  class="modal fade"
+                  id="deleteModal{{ strategy.pk }}"
+                  tabindex="-1"
+                >
+                  <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                      <div class="modal-header border-0">
+                        <h6 class="modal-title">Confirm Delete</h6>
+                        <button
+                          type="button"
+                          class="btn-close"
+                          data-bs-dismiss="modal"
+                        ></button>
+                      </div>
+                      <div class="modal-body">
+                        <p class="mb-3">
+                          Are you sure you want to delete
+                          <strong>{{ strategy.name }}</strong>?
+                        </p>
+                        <div class="d-flex gap-2 justify-content-end">
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-secondary"
+                            data-bs-dismiss="modal"
+                          >
+                            Cancel
+                          </button>
+                          <form
+                            method="post"
+                            action="{% url 'strategy_delete' strategy.pk %}"
+                            class="d-inline"
+                          >
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger">
+                              Delete
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <div class="text-muted mb-3">
+              <i class="fas fa-chart-line fa-3x"></i>
+            </div>
+            <h5 class="text-muted">No strategies yet</h5>
+            <p class="text-muted mb-4">
+              Create your first trading strategy to get started with
+              backtesting!
+            </p>
+            <a href="{% url 'strategy_create' %}" class="btn btn-success">
+              <i class="fas fa-plus"></i> Create First Strategy
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="text-end mb-3">
-  <a href="{% url 'strategy_create' %}" class="btn btn-sm btn-success"
-    >+ New Strategy</a
-  >
-</div>
+<!-- JavaScript for inline editing -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Handle inline editing
+    document.querySelectorAll(".editable-name").forEach(function (input) {
+      input.addEventListener("click", function () {
+        this.removeAttribute("readonly");
+        this.classList.remove("border-0", "bg-transparent");
+        this.classList.add("border");
+        this.focus();
+        this.select();
+      });
 
-{% if strategies %}
-<table class="table table-hover bg-white rounded shadow-sm">
-  <thead class="table-light">
-    <tr>
-      <th>Name</th>
-      <th>Lookback</th>
-      <th>Entry Threshold</th>
-      <th>Exit Rule</th>
-      <th>Created</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for strategy in strategies %}
-    <tr>
-     <td>
-  <form method="post" action="{% url 'strategy_rename' strategy.pk %}" class="d-inline">
-    {% csrf_token %}
-    <input
-      type="text"
-      name="name"
-      value="{{ strategy.name }}"
-      class="form-control form-control-sm d-inline-block w-auto editable-name"
-      style="border: none; background: transparent; font-weight: 500;"
-      title="Click to edit strategy name"
-      onfocus="this.style.background='#fff'; this.style.border='1px solid #ccc'"
-      onblur="this.form.submit();"
-    />
-  </form>
-</td>
-      <td>{{ strategy.lookback_days }}</td>
-      <td>{{ strategy.entry_threshold }}</td>
-      <td>{{ strategy.exit_rule }}</td>
-      <td>{{ strategy.created_at|date:"M d, Y" }}</td>
-      <td class="text-end">
-        <a href="{% url 'strategy_detail' strategy.pk %}" class="btn btn-sm btn-outline-primary">View</a>
-        <a href="{% url 'strategy_detail' strategy.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
-        <a href="{% url 'strategy_delete' strategy.pk %}" class="btn btn-sm btn-danger d-inline-flex align-items-center"> &#9888; Delete</a>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% else %}
-<div class="alert alert-info text-center">
-  No strategies found yet. Click "New Strategy" to get started.
-</div>
-{% endif %} {% endblock %}
+      input.addEventListener("blur", function () {
+        this.setAttribute("readonly", "readonly");
+        this.classList.add("border-0", "bg-transparent");
+        this.classList.remove("border");
+        // Submit the form
+        this.closest("form").submit();
+      });
+
+      input.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          this.blur();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

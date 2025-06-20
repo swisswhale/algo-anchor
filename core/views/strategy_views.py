@@ -17,14 +17,19 @@ def strategy_list(request):
 @login_required
 def strategy_create(request):
     if request.method == 'POST':
-        form = StrategyForm(request.POST, user=request.user)
+        form = StrategyForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Strategy created successfully.")
+            strategy = form.save(commit=False)
+            strategy.user = request.user
+            strategy.save()
+            form.save_m2m()  # Save many-to-many relationships
+            messages.success(request, f"Strategy '{strategy.name}' created successfully!")
             return redirect('dashboard')
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
-        form = StrategyForm(user=request.user)
-    return render(request, 'strategies/strategy_create.html', {'form': form})
+        form = StrategyForm()
+    return render(request, 'strategies/create.html', {'form': form})
 
 # Strategy Detail
 @login_required
@@ -50,10 +55,13 @@ def strategy_edit(request, pk):
         form = StrategyForm(request.POST, instance=strategy)
         if form.is_valid():
             form.save()
-            return redirect('strategy_detail', pk=strategy.pk)
+            messages.success(request, f"Strategy '{strategy.name}' updated successfully!")
+            return redirect('dashboard')
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = StrategyForm(instance=strategy)
-    return render(request, 'strategies/strategy_edit.html', {'form': form, 'strategy': strategy, 'title': 'Edit Strategy'})
+    return render(request, 'strategies/edit.html', {'form': form, 'strategy': strategy})
 
 # Rename Strategy
 @require_POST
@@ -61,10 +69,11 @@ def strategy_edit(request, pk):
 def strategy_rename(request, pk):
     strategy = get_object_or_404(Strategy, pk=pk, user=request.user)
     new_name = request.POST.get("name", "").strip()
-    if new_name:
+    if new_name and new_name != strategy.name:
+        old_name = strategy.name
         strategy.name = new_name
         strategy.save()
-        messages.success(request, "Strategy name updated.")
+        messages.success(request, f"Strategy renamed from '{old_name}' to '{new_name}'")
     return redirect('dashboard')
 
 # Delete Strategy
@@ -72,7 +81,8 @@ def strategy_rename(request, pk):
 def strategy_delete(request, pk):
     strategy = get_object_or_404(Strategy, pk=pk, user=request.user)
     if request.method == 'POST':
+        strategy_name = strategy.name
         strategy.delete()
-        messages.success(request, 'Strategy deleted successfully!')
-        return redirect('dashboard')  # ✅ this is the key change
-    return render(request, 'strategies/strategy_delete.html', {'strategy': strategy})
+        messages.success(request, f"Strategy '{strategy_name}' deleted successfully!")
+        return redirect('dashboard')
+    return render(request, 'strategies/delete.html', {'strategy': strategy})
