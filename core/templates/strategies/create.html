@@ -1,0 +1,132 @@
+{% extends "base.html" %} {% load static %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/strategy.css' %}" />
+{% endblock %} {% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h3 class="mb-0"><i class="fas fa-plus"></i> Create New Strategy</h3>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label for="{{ form.name.id_for_label }}" class="form-label">
+                <i class="fas fa-tag"></i> {{ form.name.label }}
+              </label>
+              {{ form.name }} {% if form.name.errors %}
+              <div class="text-danger small">{{ form.name.errors }}</div>
+              {% endif %}
+              <div class="form-text">
+                Choose a descriptive name for your strategy
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label
+                    for="{{ form.lookback_days.id_for_label }}"
+                    class="form-label"
+                  >
+                    <i class="fas fa-calendar-alt"></i> {{
+                    form.lookback_days.label }}
+                  </label>
+                  {{ form.lookback_days }} {% if form.lookback_days.errors %}
+                  <div class="text-danger small">
+                    {{ form.lookback_days.errors }}
+                  </div>
+                  {% endif %}
+                  <div class="form-text">
+                    Number of days for moving average calculation
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label
+                    for="{{ form.entry_threshold.id_for_label }}"
+                    class="form-label"
+                  >
+                    <i class="fas fa-crosshairs"></i> {{
+                    form.entry_threshold.label }}
+                  </label>
+                  {{ form.entry_threshold }} {% if form.entry_threshold.errors
+                  %}
+                  <div class="text-danger small">
+                    {{ form.entry_threshold.errors }}
+                  </div>
+                  {% endif %}
+                  <div class="form-text">
+                    Z-score threshold for entry signal
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.exit_rule.id_for_label }}" class="form-label">
+                <i class="fas fa-sign-out-alt"></i> {{ form.exit_rule.label }}
+              </label>
+              {{ form.exit_rule }} {% if form.exit_rule.errors %}
+              <div class="text-danger small">{{ form.exit_rule.errors }}</div>
+              {% endif %}
+              <div class="form-text">Define when to exit the position</div>
+            </div>
+
+            <div class="mb-4">
+              <label for="{{ form.tickers.id_for_label }}" class="form-label">
+                <i class="fas fa-chart-bar"></i> {{ form.tickers.label }}
+              </label>
+              {{ form.tickers }} {% if form.tickers.errors %}
+              <div class="text-danger small">{{ form.tickers.errors }}</div>
+              {% endif %}
+              <div class="form-text">{{ form.tickers.help_text }}</div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end">
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Create Strategy
+              </button>
+              <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i> Cancel
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="card mt-4 border-info">
+        <div class="card-header bg-info text-white">
+          <h6 class="mb-0">
+            <i class="fas fa-info-circle"></i> Strategy Guidelines
+          </h6>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li>
+              <i class="fas fa-check text-success"></i> Use 1-5 ticker symbols
+              separated by commas
+            </li>
+            <li>
+              <i class="fas fa-check text-success"></i> Lookback period
+              typically ranges from 10-50 days
+            </li>
+            <li>
+              <i class="fas fa-check text-success"></i> Entry threshold of -2 to
+              -1 is common for mean reversion
+            </li>
+            <li>
+              <i class="fas fa-check text-success"></i> Exit rules can be
+              "mean_revert", "stop_loss", or "time_based"
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

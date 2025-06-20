@@ -6,9 +6,10 @@ import yfinance as yf
 class StrategyForm(forms.ModelForm):
     tickers = forms.CharField(
         required=True,
-        help_text="Enter 1 to 5 ticker symbols separated by commas (e.g. AAPL, MSFT)",
+        label="Securities",
+        help_text="Enter 1 to 5 ticker symbols separated by commas (e.g. AAPL, MSFT, GOOGL)",
         widget=forms.TextInput(attrs={
-            'placeholder': 'AAPL, MSFT',
+            'placeholder': 'AAPL, MSFT, GOOGL',
             'class': 'form-control'
         })
     )
@@ -16,6 +17,24 @@ class StrategyForm(forms.ModelForm):
     class Meta:
         model = Strategy
         fields = ['name', 'lookback_days', 'entry_threshold', 'exit_rule']
+        labels = {
+            'name': 'Strategy Name',
+            'lookback_days': 'Lookback Period (Days)',
+            'entry_threshold': 'Entry Threshold',
+            'exit_rule': 'Exit Rule',
+        }
+        help_texts = {
+            'name': 'A descriptive name for your strategy',
+            'lookback_days': 'Number of days for moving average calculation (10-50 typical)',
+            'entry_threshold': 'Z-score threshold for entry signal (-2 to -1 typical)',
+            'exit_rule': 'When to exit the position (e.g., mean_revert, stop_loss, time_based)',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'My Mean Reversion Strategy'}),
+            'lookback_days': forms.NumberInput(attrs={'min': 5, 'max': 100, 'value': 20}),
+            'entry_threshold': forms.NumberInput(attrs={'step': 0.1, 'min': -5, 'max': 5, 'value': -2}),
+            'exit_rule': forms.TextInput(attrs={'placeholder': 'mean_revert'}),
+        }
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,11 +47,37 @@ class StrategyForm(forms.ModelForm):
             existing_tickers = list(self.instance.tickers.values_list('symbol', flat=True))
             self.fields['tickers'].initial = ', '.join(existing_tickers)
 
+    def clean_name(self):
+        name = self.cleaned_data.get('name', '').strip()
+        if len(name) < 3:
+            raise forms.ValidationError("Strategy name must be at least 3 characters long.")
+        return name
+
+    def clean_lookback_days(self):
+        lookback_days = self.cleaned_data.get('lookback_days')
+        if lookback_days and (lookback_days < 5 or lookback_days > 100):
+            raise forms.ValidationError("Lookback days must be between 5 and 100.")
+        return lookback_days
+
+    def clean_entry_threshold(self):
+        threshold = self.cleaned_data.get('entry_threshold')
+        if threshold and (threshold < -5 or threshold > 5):
+            raise forms.ValidationError("Entry threshold must be between -5 and 5.")
+        return threshold
+
     def clean_tickers(self):
         ticker_str = self.cleaned_data['tickers']
         tickers = [t.strip().upper() for t in ticker_str.split(',') if t.strip()]
+        
         if not 1 <= len(tickers) <= 5:
             raise forms.ValidationError("You must enter between 1 and 5 tickers.")
+        
+        # Validate ticker format (basic check)
+        import re
+        for ticker in tickers:
+            if not re.match(r'^[A-Z]{1,5}$', ticker):
+                raise forms.ValidationError(f"'{ticker}' is not a valid ticker symbol. Use 1-5 letters only.")
+        
         return tickers
 
     def save(self, commit=True):

@@ -1,0 +1,84 @@
+{% extends "base.html" %} {% load static %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/strategy.css' %}" />
+{% endblock %} {% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm border-danger">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-exclamation-triangle"></i> Confirm Deletion
+          </h4>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-warning">
+            <i class="fas fa-warning"></i> This action cannot be undone!
+          </div>
+
+          <p class="mb-3">
+            Are you sure you want to delete the strategy
+            <strong>"{{ strategy.name }}"</strong>?
+          </p>
+
+          <div class="bg-light p-3 rounded mb-4">
+            <h6 class="text-muted mb-2">Strategy Details:</h6>
+            <div class="row mb-1">
+              <div class="col-6">Created:</div>
+              <div class="col-6">{{ strategy.created_at|date:"M d, Y" }}</div>
+            </div>
+            <div class="row mb-1">
+              <div class="col-6">Lookback Days:</div>
+              <div class="col-6">{{ strategy.lookback_days }}</div>
+            </div>
+            <div class="row mb-1">
+              <div class="col-6">Entry Threshold:</div>
+              <div class="col-6">{{ strategy.entry_threshold }}</div>
+            </div>
+            <div class="row mb-1">
+              <div class="col-6">Tickers:</div>
+              <div class="col-6">
+                {% for ticker in strategy.tickers.all %}
+                <span class="badge bg-secondary">{{ ticker.symbol }}</span>
+                {% empty %}
+                <span class="text-muted">None</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% if strategy.backtestresult %}
+            <div class="row">
+              <div class="col-6">Performance:</div>
+              <div class="col-6">
+                <span
+                  class="{% if strategy.backtestresult.cumulative_return > 0 %}text-success{% else %}text-danger{% endif %}"
+                >
+                  {{ strategy.backtestresult.cumulative_return|floatformat:2 }}%
+                  return
+                </span>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end">
+            <form method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Yes, Delete Strategy
+              </button>
+            </form>
+            <a
+              href="{% url 'strategy_detail' strategy.pk %}"
+              class="btn btn-secondary"
+            >
+              <i class="fas fa-times"></i> Cancel
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+              <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

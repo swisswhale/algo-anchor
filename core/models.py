@@ -18,15 +18,46 @@ class Security(models.Model):
 
 class Strategy(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-    lookback_days = models.PositiveIntegerField(default=20)
-    entry_threshold = models.FloatField()
-    exit_rule = models.CharField(max_length=255)
-    tickers = models.ManyToManyField(Security, related_name='strategies')
+    name = models.CharField(max_length=100, help_text="Descriptive name for your strategy")
+    lookback_days = models.PositiveIntegerField(
+        default=20, 
+        help_text="Number of days for moving average calculation"
+    )
+    entry_threshold = models.FloatField(help_text="Z-score threshold for entry signal")
+    exit_rule = models.CharField(
+        max_length=255, 
+        help_text="Exit strategy rule (e.g., mean_revert, stop_loss)"
+    )
+    tickers = models.ManyToManyField(Security, related_name='strategies', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Strategies"
+        ordering = ['-created_at']
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.user.username})"
+    
+    def get_tickers_display(self):
+        """Return comma-separated list of ticker symbols"""
+        return ", ".join(ticker.symbol for ticker in self.tickers.all())
+    
+    def has_backtest_results(self):
+        """Check if strategy has backtest results"""
+        return hasattr(self, 'backtestresult') and self.backtestresult is not None
+    
+    def get_performance_summary(self):
+        """Get a summary of performance metrics"""
+        if self.has_backtest_results():
+            result = self.backtestresult
+            return {
+                'return': result.cumulative_return,
+                'sharpe': result.sharpe_ratio,
+                'win_rate': result.win_rate,
+                'max_drawdown': result.max_drawdown
+            }
+        return None
 
 class PriceData(models.Model):
     security = models.ForeignKey(Security, on_delete=models.CASCADE)

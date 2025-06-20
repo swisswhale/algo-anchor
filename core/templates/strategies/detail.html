@@ -1,0 +1,221 @@
+{% extends "base.html" %} {% load static %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/strategy.css' %}" />
+{% endblock %} {% block content %}
+<div class="container-fluid mt-4">
+  <div class="row">
+    <!-- Strategy Info Panel -->
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-info-circle"></i> {{ strategy.name }}
+          </h4>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <h6 class="text-muted">Strategy Parameters</h6>
+            <div class="row mb-2">
+              <div class="col-6"><strong>Lookback Days:</strong></div>
+              <div class="col-6">
+                <span class="badge bg-info">{{ strategy.lookback_days }}</span>
+              </div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-6"><strong>Entry Threshold:</strong></div>
+              <div class="col-6">{{ strategy.entry_threshold }}</div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-6"><strong>Exit Rule:</strong></div>
+              <div class="col-6">{{ strategy.exit_rule }}</div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-6"><strong>Created:</strong></div>
+              <div class="col-6">{{ strategy.created_at|date:"M d, Y" }}</div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <h6 class="text-muted">Securities</h6>
+            <div class="d-flex flex-wrap gap-1">
+              {% for ticker in strategy.tickers.all %}
+              <span class="badge bg-secondary">
+                {{ ticker.symbol }} {% if ticker.name %}
+                <small>({{ ticker.name|truncatechars:15 }})</small>
+                {% endif %}
+              </span>
+              {% empty %}
+              <span class="text-muted">No tickers assigned</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          {% if strategy.backtestresult %}
+          <div class="mb-3">
+            <h6 class="text-muted">Performance Metrics</h6>
+            <div class="row mb-1">
+              <div class="col-8">Cumulative Return:</div>
+              <div class="col-4 text-end">
+                <span
+                  class="{% if strategy.backtestresult.cumulative_return > 0 %}text-success{% else %}text-danger{% endif %} fw-bold"
+                >
+                  {{ strategy.backtestresult.cumulative_return|floatformat:2 }}%
+                </span>
+              </div>
+            </div>
+            {% if strategy.backtestresult.sharpe_ratio %}
+            <div class="row mb-1">
+              <div class="col-8">Sharpe Ratio:</div>
+              <div class="col-4 text-end">
+                {{ strategy.backtestresult.sharpe_ratio|floatformat:3 }}
+              </div>
+            </div>
+            {% endif %} {% if strategy.backtestresult.win_rate %}
+            <div class="row mb-1">
+              <div class="col-8">Win Rate:</div>
+              <div class="col-4 text-end">
+                {{ strategy.backtestresult.win_rate|floatformat:1 }}%
+              </div>
+            </div>
+            {% endif %} {% if strategy.backtestresult.max_drawdown %}
+            <div class="row mb-1">
+              <div class="col-8">Max Drawdown:</div>
+              <div class="col-4 text-end text-danger">
+                {{ strategy.backtestresult.max_drawdown|floatformat:2 }}%
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% else %}
+          <div class="alert alert-warning">
+            <i class="fas fa-clock"></i> Backtest results pending or not
+            available
+          </div>
+          {% endif %}
+
+          <div class="d-grid gap-2">
+            <a
+              href="{% url 'strategy_edit' strategy.pk %}"
+              class="btn btn-primary btn-sm"
+            >
+              <i class="fas fa-edit"></i> Edit Strategy
+            </a>
+            <a
+              href="{% url 'dashboard' %}"
+              class="btn btn-outline-secondary btn-sm"
+            >
+              <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart and Analysis Panel -->
+    <div class="col-md-8">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-secondary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-line"></i> Strategy Analysis
+          </h5>
+        </div>
+        <div class="card-body">
+          {% if chart_path %}
+          <div class="text-center mb-4">
+            <img
+              src="{{ chart_path }}"
+              class="img-fluid"
+              alt="Strategy Chart"
+              style="max-height: 400px"
+            />
+          </div>
+          {% else %}
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Chart generation is temporarily unavailable. This will be
+            implemented in Step 6.
+          </div>
+          {% endif %} {% if backtest %}
+          <div class="row">
+            <div class="col-md-6">
+              <h6>Backtest Summary</h6>
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <tbody>
+                    <tr>
+                      <td>Total Return:</td>
+                      <td class="text-end fw-bold">
+                        {{ backtest.total_return|floatformat:2 }}%
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Total Trades:</td>
+                      <td class="text-end">{{ backtest.total_trades }}</td>
+                    </tr>
+                    <tr>
+                      <td>Winning Trades:</td>
+                      <td class="text-end text-success">
+                        {{ backtest.winning_trades }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Losing Trades:</td>
+                      <td class="text-end text-danger">
+                        {{ backtest.losing_trades }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h6>Risk Metrics</h6>
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <tbody>
+                    <tr>
+                      <td>Volatility:</td>
+                      <td class="text-end">
+                        {{ backtest.volatility|floatformat:2 }}%
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Sharpe Ratio:</td>
+                      <td class="text-end">
+                        {{ backtest.sharpe_ratio|floatformat:3 }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Max Drawdown:</td>
+                      <td class="text-end text-danger">
+                        {{ backtest.max_drawdown|floatformat:2 }}%
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            Backtest data unavailable. This will be implemented in Step 5.
+          </div>
+          {% endif %} {% if strategy.backtestresult.trade_log %}
+          <div class="mt-4">
+            <h6>Trade Log</h6>
+            <div
+              class="bg-light p-3 rounded"
+              style="max-height: 200px; overflow-y: auto"
+            >
+              <pre class="mb-0 small">
+{{ strategy.backtestresult.trade_log }}</pre
+              >
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

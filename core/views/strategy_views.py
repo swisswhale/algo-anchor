@@ -35,10 +35,19 @@ def strategy_create(request):
 @login_required
 def strategy_detail(request, pk):
     strategy = get_object_or_404(Strategy, pk=pk, user=request.user)
-    ticker = strategy.tickers.first().symbol if strategy.tickers.exists() else 'AAPL'
-    chart_path = generate_strategy_chart(ticker, strategy.lookback_days, strategy.entry_threshold, 0.5)
-
-    backtest = run_mean_reversion_backtest(ticker, strategy.lookback_days, strategy.entry_threshold, 0.5)
+    
+    # Safely handle chart generation (will be implemented in Step 6)
+    chart_path = None
+    backtest = None
+    
+    try:
+        if strategy.tickers.exists():
+            ticker = strategy.tickers.first().symbol
+            # Temporarily disable chart generation to avoid errors
+            # chart_path = generate_strategy_chart(ticker, strategy.lookback_days, strategy.entry_threshold, 0.5)
+            # backtest = run_mean_reversion_backtest(ticker, strategy.lookback_days, strategy.entry_threshold, 0.5)
+    except Exception as e:
+        messages.warning(request, "Chart generation temporarily unavailable.")
 
     context = {
         'strategy': strategy,
